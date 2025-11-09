@@ -4,64 +4,82 @@ const API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
 
 function speak(text, enabled) {
   if (!enabled) return;
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 1;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1;
+    u.pitch = 1;
+    u.volume = 1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  } catch {}
 }
 
 export default function App() {
   const [topic, setTopic] = useState("Artificial Intelligence in Education");
   const [mode, setMode] = useState("Coach");
-  const [voiceOn, setVoiceOn] = useState(true);
   const [messages, setMessages] = useState([
     { role: "system", text: "👋 Welcome to AI Debate Coach! Enter your first argument to begin." }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(true);
 
   const scrollRef = useRef(null);
+
+  const avgScore = useMemo(() => {
+    const nums = messages
+      .map((m) => {
+        const match = /(?:Score|score)\s*[:\-]\s*(\d+(?:\.\d+)?)/i.exec(m.text);
+        return match ? Number(match[1]) : null;
+      })
+      .filter((n) => typeof n === "number");
+    if (!nums.length) return 0;
+    return Math.round((nums.reduce((a, b) => a + b, 0) / nums.length) * 10) / 10;
+  }, [messages]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
-
-  const avgScore = useMemo(() => {
-    const scores = messages
-      .map(m => {
-        const match = /Score:\s*(\d+)/i.exec(m.text);
-        return match ? Number(match[1]) : null;
-      })
-      .filter(v => v !== null);
-    return scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : "0.0";
-  }, [messages]);
+  }, [messages, loading]);
 
   async function sendMessage() {
     if (!input.trim() || loading) return;
 
-    const newMessages = [...messages, { role: "user", text: input }];
-    setMessages(newMessages);
+    const userMsg = { role: "user", text: input.trim() };
+    const nextMsgs = [...messages, userMsg];
+    setMessages(nextMsgs);
     setInput("");
     setLoading(true);
 
-    const modeInstruction = {
-      Coach: `You are a debate coach.`,
-      Opponent: `You are debating and must oppose the user.`,
-      Judge: `You are a neutral judge assessing both clarity and impact.`
-    }[mode];
+    const systemInstruction =
+      mode === "Coach"
+        ? `You are an expert debate coach. Provide a counterargument, score (0-10), and coaching tip.`
+        : mode === "Opponent"
+        ? `You are the user's debate opponent. Respond with a rebuttal and strategic critique.`
+        : `You are a neutral judge. Provide balanced analysis and constructive critique.`;
+
+    const formatRule = `Format strictly:
+Counterargument: <2-4 sentences>
+Score: <0-10>
+Coaching Tip: <one sentence>`;
+
+    const history = nextMsgs
+      .filter((m) => m.role !== "system")
+      .map((m) => `${m.role === "user" ? "User" : "AI"}: ${m.text}`)
+      .join("\n");
 
     const prompt = `
-Topic: ${topic}
+Debate Topic: "${topic}"
 Mode: ${mode}
 
-${modeInstruction}
-Respond EXACTLY in this format:
+${systemInstruction}
+${formatRule}
 
-Counterargument: <3 sentences>
-Score: <0-10>
-Coaching Tip: <1 sentence>
+Conversation:
+${history}
+
+Newest Argument: "${userMsg.text}"
 `;
 
     try {
@@ -71,19 +89,22 @@ Coaching Tip: <1 sentence>
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: newMessages.map(m => `${m.role}: ${m.text}`).join("\n") + "\nUser: " + input + "\n\n" + prompt }] }]
+            contents: [{ parts: [{ text: prompt }] }]
           })
         }
       );
 
       const data = await res.json();
-      let reply = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") ?? "⚠️ No response.";
-      reply = reply.replace(/\*\*/g, "").trim();
+      const raw =
+        data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ||
+        "⚠️ AI could not generate a response.";
 
-      speak(reply, voiceOn);
-      setMessages([...newMessages, { role: "assistant", text: reply }]);
+      const cleaned = raw.replace(/\*\*/g, "").trim();
+      speak(cleaned, voiceOn);
+
+      setMessages([...nextMsgs, { role: "assistant", text: cleaned }]);
     } catch {
-      setMessages([...newMessages, { role: "assistant", text: "⚠️ API Error – Try again." }]);
+      setMessages([...nextMsgs, { role: "assistant", text: "⚠️ AI error occurred." }]);
     }
 
     setLoading(false);
@@ -92,53 +113,61 @@ Coaching Tip: <1 sentence>
   return (
     <div className="layout">
       <aside className="sidebar">
-        <h2>🧠 Debate Info</h2>
+        <div className="brand">🧠 Debate Info</div>
 
-        <label>Topic</label>
-        <input value={topic} onChange={e => setTopic(e.target.value)} />
+        <label className="label">Topic</label>
+        <input className="input" value={topic} onChange={(e) => setTopic(e.target.value)} />
 
-        <label>Mode</label>
-        <select value={mode} onChange={e => setMode(e.target.value)}>
+        <label className="label">Mode</label>
+        <select className="select" value={mode} onChange={(e) => setMode(e.target.value)}>
           <option>Coach</option>
           <option>Opponent</option>
           <option>Judge</option>
         </select>
 
-        <label>Average Score</label>
-        <div className="score">{avgScore}</div>
+        <label className="label">Average Score</label>
+        <div className="scoreBox">{avgScore.toFixed(1)}</div>
       </aside>
 
       <main className="main">
-        <h1>🤖 AI Debate Coach</h1>
+        <h1 className="title">🤖 AI Debate Coach</h1>
 
-        <div className="chat" ref={scrollRef}>
-          {messages.filter(m => m.role !== "system").map((msg, i) => (
-            <div key={i} className={msg.role === "user" ? "bubble user" : "bubble ai"}>
-              {msg.text}
-            </div>
-          ))}
+        <div className="board">
+          {messages.length === 1 && (
+            <div className="pill">👋 Welcome to AI Debate Coach! Enter your first argument to begin.</div>
+          )}
 
-          {loading && <p className="thinking">🤔 AI is thinking...</p>}
+          <div className="chat" ref={scrollRef}>
+            {messages
+              .filter((m) => m.role !== "system")
+              .map((m, i) => (
+                <div key={i} className={`bubble ${m.role === "user" ? "me" : "ai"}`}>
+                  {m.text}
+                </div>
+              ))}
+
+            {loading && <div className="thinking">🤔 AI is thinking…</div>}
+          </div>
         </div>
 
-        <div className="controls">
-          <button className="voice-btn" onClick={() => setVoiceOn(v => !v)}>
+        <div className="composer">
+          <div className={`voice ${voiceOn ? "on" : "off"}`} onClick={() => setVoiceOn((v) => !v)}>
             🔊 Voice: {voiceOn ? "ON" : "OFF"}
-          </button>
+          </div>
 
           <input
-            className="input"
+            className="composerInput"
             placeholder="Enter your argument..."
             value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && sendMessage()}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
-          <button className="send" onClick={sendMessage}>Send</button>
+          <button className="send" onClick={sendMessage} disabled={loading}>
+            Send
+          </button>
         </div>
 
-        <footer className="footer">
-          © 2025 • Mustapha Jobe • AI Debate Coach
-        </footer>
+        <footer className="footer-tag">© 2025 • Mustapha Jobe • AI Debate Coach</footer>
       </main>
     </div>
   );
