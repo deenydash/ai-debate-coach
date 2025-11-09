@@ -44,16 +44,6 @@ The app will run at:
 
 -------------------------------------------------------------------
 
-Demo Script (for presentation or judges)
-
-1. Introduce the app: "This is AI Debate Coach. It helps users practice forming and defending arguments."
-2. Enter a sample argument: for example, "AI should replace teachers."
-3. Explain the response: "The AI generates a counterargument, assigns a score, and gives advice on how to strengthen the claim."
-4. Show mode switching: "Changing the mode to Opponent will make the AI argue against the position. Judge mode evaluates arguments neutrally."
-5. Show voice mode: "Here, voice mode reads the response aloud for accessibility and engagement."
-6. End with importance: "This tool helps develop critical thinking, structured reasoning, and persuasive communication skills."
-
--------------------------------------------------------------------
 
 Why This Project Matters
 
