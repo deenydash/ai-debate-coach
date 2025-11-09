@@ -1,0 +1,153 @@
+body {
+  margin: 0;
+  background: #0f0f15;
+  color: #e8e8e8;
+  font-family: system-ui, sans-serif;
+}
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  padding: 18px;
+  background: #11111a;
+  border-right: 1px solid #2a2a39;
+}
+.sidebar h2 {
+  margin-bottom: 20px;
+  color: #ff77c6;
+  font-weight: 600;
+}
+.sidebar-label {
+  margin-top: 12px;
+  display: block;
+  font-size: 14px;
+  opacity: 0.8;
+}
+.sidebar input,
+.sidebar select {
+  width: 100%;
+  background: #1b1b25;
+  border: none;
+  padding: 9px;
+  color: white;
+  border-radius: 6px;
+  margin-top: 6px;
+}
+.score-display {
+  margin-top: 6px;
+  padding: 12px;
+  background: #161627;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+  color: #b8b8ff;
+  border: 1px solid rgba(140,140,255,0.4);
+}
+
+/* Chat Area */
+.chat-section {
+  flex-grow: 1;
+  padding: 24px 4vw;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 16px;
+  color: #a7b3ff;
+}
+
+/* Chat Box */
+.chat-box {
+  flex-grow: 1;
+  overflow-y: auto;
+  background: #15151d;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Messages */
+.msg {
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 65%;
+  white-space: pre-line;
+  line-height: 1.4;
+  font-size: 15px;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+/* Cool bubble look */
+.user-msg {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #6d7bff, #4859f8);
+  color: #fff;
+  box-shadow: 0px 4px 10px rgba(81, 99, 255, 0.45);
+}
+
+.bot-msg {
+  align-self: flex-start;
+  background: #2a2a3a;
+  border: 1px solid #3b3b52;
+}
+
+/* Thinking Indicator */
+.thinking {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* Voice Status */
+.voice-toggle {
+  text-align: center;
+  margin-top: 10px;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: 0.2s;
+}
+.voice-toggle:hover {
+  opacity: 1;
+}
+
+/* Input Row */
+.input-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.text-input {
+  flex-grow: 1;
+  padding: 12px;
+  background: #1d1d26;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 15px;
+}
+
+.send-button {
+  background: #5668f3;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  font-weight: 500;
+  transition: 0.2s;
+}
+.send-button:hover {
+  background: #6c79ff;
+}
