@@ -34,7 +34,7 @@ Setup Instructions
    npm install
 
 3. Create a .env file in the project folder and add:
-   REACT_APP_GEMINI_API_KEY=AIzaSyCchbG21iEoECKoaVICSfa15zxLKIUYCO4
+   REACT_APP_GEMINI_API_KEY=YOUR_API_KEY_HERE
 
 4. Start the application:
    npm start
