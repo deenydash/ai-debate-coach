@@ -29,7 +29,8 @@ export default function App() {
   const avgScore = useMemo(() => {
     const nums = messages
       .map((m) => {
-        const match = /(?:Score|score)\s*[:\-]\s*(\d+(?:\.\d+)?)/i.exec(m.text);
+        const match = /(?:Score|score)\s*[:-]\s*(\d+(?:\.\d+)?)/i.exec(m.text);
+
         return match ? Number(match[1]) : null;
       })
       .filter((n) => typeof n === "number");
