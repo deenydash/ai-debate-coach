@@ -4,43 +4,28 @@ const API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
 
 export default function App() {
   const [topic, setTopic] = useState("Artificial Intelligence in Education");
-  const [mode, setMode] = useState("Coach");
   const [messages, setMessages] = useState([
-    { role: "assistant", text: "👋 Welcome to AI Debate Coach! Enter your first argument to begin." }
+    { role: "system", text: "👋 Welcome to AI Debate Coach! Enter your first argument to begin." }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
-
-  // Calculate average score from messages
-  const scores = messages
-    .map(m => parseFloat(m.text.match(/Score:\s*([0-9.]+)/)?.[1]))
-    .filter(n => !isNaN(n));
-  const avgScore = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-
-  function speak(text) {
-    if (!voiceEnabled) return;
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 1.05;
-    speechSynthesis.speak(utter);
-  }
 
   async function sendMessage() {
     if (!input.trim()) return;
 
-    const newMsg = { role: "user", text: input };
-    setMessages((m) => [...m, newMsg]);
+    const newMessages = [...messages, { role: "user", text: input }];
+    setMessages(newMessages);
     setInput("");
     setLoading(true);
 
     const prompt = `
-Debate Mode: ${mode}
-Topic: ${topic}
-User Argument: ${input}
+You are an expert debate coach AI. The debate topic is: "${topic}".
+The user's latest argument is: "${input}".
 
-Respond using:
-Counterargument: (2-4 sentences)
-Score: (0-10)
+Respond in exactly this structure:
+
+Counterargument: (2–4 sentences)
+Score: (0–10)
 Coaching Tip: (one sentence)
 `;
 
@@ -51,82 +36,81 @@ Coaching Tip: (one sentence)
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
+            contents: [
+              {
+                parts: [{ text: prompt }]
+              }
+            ]
           })
         }
       );
 
       const data = await res.json();
+      console.log("Gemini Response:", data);
+
       let aiText =
         data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ||
         "⚠️ AI could not generate a response.";
 
-      aiText = aiText.replace(/\*\*/g, "");
-      setMessages((m) => [...m, { role: "assistant", text: aiText }]);
-      speak(aiText);
+      aiText = aiText.replace(/\*\*/g, "").replace(/\n{3,}/g, "\n\n");
 
+      setMessages([...newMessages, { role: "assistant", text: aiText }]);
     } catch (err) {
-      console.error(err);
-      setMessages((m) => [...m, { role: "assistant", text: "⚠️ Error contacting AI." }]);
+      console.error("API Error:", err);
+      setMessages([
+        ...newMessages,
+        { role: "assistant", text: "⚠️ Error contacting AI." },
+      ]);
     }
 
     setLoading(false);
-
-    setTimeout(() => {
-      const box = document.getElementById("chatBox");
-      if (box) box.scrollTop = box.scrollHeight;
-    }, 100);
   }
 
   return (
-    <div className="app-layout">
+    <div className="app-container">
 
-      {/* Sidebar */}
-      <div className="sidebar">
-        <h2>🧠 Debate Info</h2>
+      <h1 className="title">🤖 AI Debate Coach</h1>
 
-        <label className="sidebar-label">Topic</label>
-        <input value={topic} onChange={(e) => setTopic(e.target.value)} />
+      <input
+        className="topic-input"
+        value={topic}
+        onChange={(e) => setTopic(e.target.value)}
+      />
 
-        <label className="sidebar-label">Mode</label>
-        <select value={mode} onChange={(e) => setMode(e.target.value)}>
-          <option>Coach</option>
-          <option>Opponent</option>
-          <option>Judge</option>
-        </select>
+      <div className="chat-box">
+        {messages.map((msg, i) => (
+          <div
+            key={i}
+            className={`msg ${msg.role === "user" ? "user-msg" : "bot-msg"}`}
+          >
+            {msg.text}
+          </div>
+        ))}
 
-        <label className="sidebar-label">Average Score</label>
-        <div className="score-display">{avgScore.toFixed(1)}</div>
+        {loading && <p className="thinking">🤔 AI is thinking...</p>}
       </div>
 
-      {/* Chat */}
-      <div className="chat-section">
-        <h1 className="title">🤖 AI Debate Coach</h1>
-
-        <div className="chat-box" id="chatBox">
-          {messages.map((msg, i) => (
-            <div key={i} className={`msg ${msg.role === "user" ? "user-msg" : "bot-msg"}`}>
-              {msg.text}
-            </div>
-          ))}
-          {loading && <div className="msg bot-msg thinking">AI is thinking…</div>}
-        </div>
-
-        <div className="voice-toggle" onClick={() => setVoiceEnabled(!voiceEnabled)}>
-          🔊 Voice: {voiceEnabled ? "ON" : "OFF"}
-        </div>
-
-        <div className="input-row">
-          <input
-            className="text-input"
-            placeholder="Enter your argument..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          />
-          <button className="send-button" onClick={sendMessage}>Send</button>
-        </div>
+      <div className="input-row">
+        <input
+          className="text-input"
+          placeholder="Enter your argument..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        />
+        <button
+          onClick={sendMessage}
+          className="send-button"
+          disabled={loading}
+        >
+          Send
+        </button>
       </div>
+
+      {/* Footer Signature */}
+      <footer className="footer-tag">
+        © 2025 • Mustapha Jobe • AI Debate Coach
+      </footer>
 
     </div>
   );
