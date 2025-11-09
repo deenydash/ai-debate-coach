@@ -1,104 +1,102 @@
 body {
+  background: #0f0f16;
+  color: #e6e6e6;
   margin: 0;
-  background: #0f0f15;
-  color: #e8e8e8;
   font-family: system-ui, sans-serif;
+}
+
+.layout {
   display: flex;
-  justify-content: center;
-  padding-top: 30px;
+  height: 100vh;
 }
 
-.app-container {
-  width: 650px;
-  text-align: center;
+.sidebar {
+  width: 250px;
+  padding: 20px;
+  border-right: 1px solid #2a2a35;
 }
 
-.title {
-  font-size: 32px;
-  font-weight: bold;
-  color: #a7b3ff;
-  margin-bottom: 20px;
-}
-
-.topic-input {
+.sidebar input,
+.sidebar select {
   width: 100%;
-  padding: 10px;
-  background: #1d1d26;
+  background: #1a1a24;
   border: none;
-  border-radius: 8px;
+  padding: 8px;
+  border-radius: 6px;
   color: white;
   margin-bottom: 12px;
 }
 
-.chat-box {
-  height: 65vh;
-  overflow-y: auto;
+.score {
+  background: #1a1a24;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.main {
+  flex-grow: 1;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat {
+  flex-grow: 1;
   background: #15151d;
   border-radius: 12px;
   padding: 15px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.msg {
-  padding: 10px 14px;
+.bubble {
+  padding: 12px 14px;
   border-radius: 10px;
-  max-width: 80%;
-  text-align: left;
+  max-width: 75%;
   white-space: pre-line;
 }
 
-.user-msg {
+.user {
   background: #5668f3;
   align-self: flex-end;
-  color: white;
 }
 
-.bot-msg {
-  background: #262633;
+.ai {
+  background: #2a2a35;
   align-self: flex-start;
 }
 
-.thinking {
-  opacity: 0.7;
-  font-style: italic;
-}
-
-.input-row {
+.controls {
   display: flex;
   gap: 8px;
-  margin-top: 14px;
+  padding-top: 12px;
 }
 
-.text-input {
+.input {
   flex-grow: 1;
   padding: 10px;
-  background: #1d1d26;
-  border: none;
+  background: #1a1a24;
   border-radius: 6px;
   color: white;
+  border: none;
 }
 
-.send-button {
+.send, .voice-btn {
   background: #5668f3;
   border: none;
-  color: white;
   padding: 10px 14px;
   border-radius: 6px;
   cursor: pointer;
+  color: white;
 }
 
-.footer-tag {
-  position: fixed;
-  bottom: 12px;
-  left: 12px;
+.footer {
+  margin-top: 10px;
+  opacity: 0.6;
   font-size: 13px;
-  color: #797d91;
-  opacity: 0.8;
-  pointer-events: none;
-  user-select: none;
-}
-.footer-tag:hover {
-  opacity: 1;
 }
