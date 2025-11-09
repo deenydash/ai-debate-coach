@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 const API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+console.log("Loaded Key:", API_KEY);
 
 function speak(text, enabled) {
   if (!enabled) return;
@@ -37,6 +38,7 @@ export default function App() {
         return match ? Number(match[1]) : null;
       })
       .filter(v => v !== null);
+
     return scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : "0.0";
   }, [messages]);
 
@@ -69,19 +71,17 @@ Coaching Tip: (1 short sentence)
 
     try {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             contents: [
               {
+                role: "user",
                 parts: [
                   {
-                    text:
-                      newMessages.map(m => `${m.role}: ${m.text}`).join("\n") +
-                      "\n\n" +
-                      prompt
+                    text: newMessages.map(m => `${m.role}: ${m.text}`).join("\n") + "\n\n" + prompt
                   }
                 ]
               }
@@ -91,13 +91,18 @@ Coaching Tip: (1 short sentence)
       );
 
       const data = await res.json();
-      let reply = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") ?? "⚠️ No response.";
+      console.log("API Response:", data);
+
+      let reply =
+        data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") ??
+        "⚠️ No response.";
+
       reply = reply.replace(/\*\*/g, "").trim();
 
       speak(reply, voiceOn);
       setMessages([...newMessages, { role: "assistant", text: reply }]);
-    } catch {
-      setMessages([...newMessages, { role: "assistant", text: "⚠️ API Error — Try again." }]);
+    } catch (err) {
+      setMessages([...newMessages, { role: "assistant", text: "⚠️ API Error — Check key settings." }]);
     }
 
     setLoading(false);
